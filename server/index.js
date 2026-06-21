@@ -4,6 +4,7 @@ import { Server } from 'socket.io'
 import mongoose from 'mongoose'
 import cors from 'cors'
 import dotenv from 'dotenv'
+
 import authRoutes from './routes/auth.js'
 import userRoutes from './routes/user.js'
 import messageRoutes from './routes/message.js'
@@ -13,62 +14,74 @@ dotenv.config()
 
 const app = express()
 const server = http.createServer(app)
+
+const CLIENT_URL =
+  process.env.CLIENT_URL ||
+  'https://varta-chat-app-orpin.vercel.app'
+
+// Express CORS
+app.use(
+  cors({
+    origin: CLIENT_URL,
+    credentials: true
+  })
+)
+
+app.use(express.json({ limit: '10mb' }))
+
+// Socket.IO CORS
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:5173',
-    methods: ['GET', 'POST']
+    origin: CLIENT_URL,
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 })
-
-app.use(cors())
-app.use(express.json({ limit: '10mb' }))
 
 // Routes
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/messages', messageRoutes)
 app.use('/api/groups', groupRoutes)
-mongoose.connect(process.env.MONGO_URI)
+
+// MongoDB
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch((err) => console.log(err))
 
-// Track online users: { userId: socketId }
+// Track online users
 const onlineUsers = new Map()
 
 io.on('connection', (socket) => {
   console.log('🟢 User connected:', socket.id)
 
-  // User comes online
- socket.on('addUser', (userId) => {
-  console.log('✅ addUser called with:', userId)
-  onlineUsers.set(userId, socket.id)
-  console.log('Current onlineUsers map:', Array.from(onlineUsers.entries()))
-  io.emit('getOnlineUsers', Array.from(onlineUsers.keys()))
-})
+  socket.on('addUser', (userId) => {
+    onlineUsers.set(userId, socket.id)
 
-  // Send message
- socket.on('sendMessage', ({ senderId, receiverId, text, image }) => {
-  console.log('📤 sendMessage from', senderId, 'to', receiverId)
-  console.log('Looking up receiver in onlineUsers:', onlineUsers.get(receiverId))
-  const receiverSocketId = onlineUsers.get(receiverId)
-  if (receiverSocketId) {
-    io.to(receiverSocketId).emit('getMessage', {
-      senderId,
-      text,
-      image,
-      createdAt: new Date()
-    })
-  } else {
-    console.log('❌ Receiver not found in onlineUsers!')
-  }
-})
+    io.emit('getOnlineUsers', Array.from(onlineUsers.keys()))
 
-  // Join a group room
+    console.log('Online users:', Array.from(onlineUsers.keys()))
+  })
+
+  socket.on('sendMessage', ({ senderId, receiverId, text, image }) => {
+    const receiverSocketId = onlineUsers.get(receiverId)
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('getMessage', {
+        senderId,
+        receiverId,
+        text,
+        image,
+        createdAt: new Date()
+      })
+    }
+  })
+
   socket.on('joinGroup', (groupId) => {
     socket.join(groupId)
   })
 
-  // Send group message
   socket.on('sendGroupMessage', ({ groupId, senderId, text, image }) => {
     socket.to(groupId).emit('getGroupMessage', {
       senderId,
@@ -78,17 +91,22 @@ io.on('connection', (socket) => {
     })
   })
 
-  // User disconnects
   socket.on('disconnect', () => {
-    console.log('🔴 User disconnected:', socket.id)
     for (const [userId, socketId] of onlineUsers.entries()) {
       if (socketId === socket.id) {
         onlineUsers.delete(userId)
         break
       }
     }
+
     io.emit('getOnlineUsers', Array.from(onlineUsers.keys()))
+
+    console.log('🔴 User disconnected:', socket.id)
   })
 })
 
-server.listen(5000, () => console.log('🚀 Server running on port 5000'))
+const PORT = process.env.PORT || 5000
+
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`)
+})
