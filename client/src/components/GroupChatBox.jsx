@@ -12,7 +12,7 @@ const GroupChatBox = ({ selectedGroup }) => {
 
   useEffect(() => {
     const fetchMessages = async () => {
-      const res = await axios.get(`http://localhost:5000/api/groups/${selectedGroup._id}/messages`, {
+      const res = await axios.get(`https://varta-backend-spju.onrender.com/api/groups/${selectedGroup._id}/messages`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setMessages(res.data)
@@ -48,7 +48,7 @@ const GroupChatBox = ({ selectedGroup }) => {
 
     socket.emit('sendGroupMessage', newMessage)
 
-    await axios.post(`http://localhost:5000/api/groups/${selectedGroup._id}/messages`, { text }, {
+    await axios.post(`https://varta-backend-spju.onrender.com/api/groups/${selectedGroup._id}/messages`, { text }, {
       headers: { Authorization: `Bearer ${token}` }
     })
 

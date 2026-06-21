@@ -36,7 +36,7 @@ const ChatBox = ({ selectedUser }) => {
 
   useEffect(() => {
     const fetchMessages = async () => {
-      const res = await axios.get(`http://localhost:5000/api/messages/${selectedUser._id}`, {
+      const res = await axios.get(`https://varta-backend-spju.onrender.com/api/messages/${selectedUser._id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setMessages(res.data)
@@ -77,7 +77,7 @@ const ChatBox = ({ selectedUser }) => {
 
     try {
       const res = await axios.post(
-        `http://localhost:5000/api/messages/${selectedUser._id}`,
+        `https://varta-backend-spju.onrender.com/api/messages/${selectedUser._id}`,
         { text, image: imagePreview },
         { headers: { Authorization: `Bearer ${token}` } }
       )

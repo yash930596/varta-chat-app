@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('varta_user')) || null)
   const [token, setToken] = useState(localStorage.getItem('varta_token') || null)
 
-  const API_URL = 'http://localhost:5000/api/auth'
+  const API_URL = 'https://varta-backend-spju.onrender.com/api/auth'
 
   const register = async (name, email, password) => {
     const res = await axios.post(`${API_URL}/register`, { name, email, password })

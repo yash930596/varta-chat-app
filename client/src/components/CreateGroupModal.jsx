@@ -17,7 +17,7 @@ const CreateGroupModal = ({ users, onClose, onGroupCreated }) => {
     if (!name.trim() || selectedMembers.length === 0) return
 
     const res = await axios.post(
-      'http://localhost:5000/api/groups',
+      'https://varta-backend-spju.onrender.com/api/groups',
       { name, members: selectedMembers },
       { headers: { Authorization: `Bearer ${token}` } }
     )

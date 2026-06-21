@@ -12,7 +12,7 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (!user) return
 
-    socketRef.current = io('http://localhost:5000')
+    socketRef.current = io('https://varta-backend-spju.onrender.com')
     socketRef.current.emit('addUser', user.id)
 
     socketRef.current.on('getOnlineUsers', (users) => {

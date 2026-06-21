@@ -33,12 +33,12 @@ const Chat = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const usersRes = await axios.get('http://localhost:5000/api/users', {
+      const usersRes = await axios.get('https://varta-backend-spju.onrender.com/api/users', {
         headers: { Authorization: `Bearer ${token}` }
       })
       setUsers(usersRes.data)
 
-      const groupsRes = await axios.get('http://localhost:5000/api/groups', {
+      const groupsRes = await axios.get('https://varta-backend-spju.onrender.com/api/groups', {
         headers: { Authorization: `Bearer ${token}` }
       })
       setGroups(groupsRes.data)
